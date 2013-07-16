@@ -1,0 +1,13 @@
+message,api,method,input ,status,output
+heart beat,/diagnostic/status/heartbeat,get,,200,
+diagnostic,/diagnostic,get,,200,"{""content"":[
+          ""/diagnostic/status/nagios"",
+          ""/diagnostic/status/heartbeat"",
+          ""/diagnostic/config"",
+          ""/diagnostic/version"",
+          ""/diagnostic/host""
+        ]
+        }"
+version,/diagnostic/version,get,,200,SNAPSHOT
+hostname,/diagnostic/host,get,,200,HOSTNAME
+nagios,/diagnostic/status/nagios,get,,200,
