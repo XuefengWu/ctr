@@ -1,7 +1,7 @@
 ctr
 ===
 
-cvs test rest
+csv test rest
 
 $./sbt
 >test
