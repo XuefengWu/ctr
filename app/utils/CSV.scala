@@ -37,8 +37,9 @@ object CSV extends RegexParsers {
 
   private def nonescaped: Parser[String] = (TXT*) ^^ { case ls => ls.mkString("") }
 
-  private def parseIo(i: scala.io.BufferedSource): List[Map[String, String]] = parseString(i.getLines.mkString("\r\n"))
-  private def parseString(s: String): List[Map[String, String]] = parseAll(file, s) match {
+  private def parseIo(i: scala.io.BufferedSource): List[Map[String, String]] = parseText(i.getLines.mkString("\r\n"))
+
+  def parseText(s: String): List[Map[String, String]] = parseAll(file, s) match {
     case Success(alllines, _) =>
       val head = alllines.head
       alllines.drop(1) map { line =>
