@@ -14,20 +14,27 @@ object RestCases {
 }
 // Original Code from http://stackoverflow.com/questions/5063022/use-scala-parser-combinator-to-parse-csv-files
 object CSV extends RegexParsers {
-  override protected val whiteSpace = """[ \t]""".r
+  override val skipWhitespace = false   // meaningful spaces in CSV
 
-  val COMMA = ","
-  val DQUOTE  = "\""
-  val DQUOTE2 = "\"\"" ^^ { case _ => "\"" }
-  val CR      = "\r"
-  val LF      = "\n"
-  val CRLF    = "\r\n"
-  val TXT     = "[^\"%s\r\n]".format(COMMA).r
+  private def COMMA   = ","
+  private def DQUOTE  = "\""
+  private def DQUOTE2 = "\"\"" ^^ { case _ => "\"" }  // combine 2 dquotes into 1
+  private def CRLF    = "\r\n" | "\n"
+  private def TXT     = "[^\",\r\n]".r
+  private def SPACES  = "[ \t]+".r
 
-  private def file: Parser[List[List[String]]] = repsep(record, CRLF) <~ opt(CRLF)
-  private def record: Parser[List[String]] = rep1sep(field, COMMA)
-  private def field: Parser[String] = (escaped|nonescaped)
-  private def escaped: Parser[String] = (DQUOTE~>((TXT|COMMA|CR|LF|DQUOTE2)*)<~DQUOTE) ^^ { case ls => ls.mkString("")}
+  private def file: Parser[List[List[String]]] = repsep(record, CRLF) <~ (CRLF?)
+
+  private def record: Parser[List[String]] = repsep(field, COMMA)
+
+  private def field: Parser[String] = escaped|nonescaped
+
+  private def escaped: Parser[String] = {
+    ((SPACES?)~>DQUOTE~>((TXT|COMMA|CRLF|DQUOTE2)*)<~DQUOTE<~(SPACES?)) ^^ {
+      case ls => ls.mkString("")
+    }
+  }
+
   private def nonescaped: Parser[String] = (TXT*) ^^ { case ls => ls.mkString("") }
 
   private def parseIo(i: scala.io.BufferedSource): List[Map[String, String]] = parseString(i.getLines.mkString("\r\n"))
@@ -46,5 +53,5 @@ object CSV extends RegexParsers {
   }
 
 
-  def parse(path:String) = parseIo(scala.io.Source.fromFile(path))
+  def parse(path:String):List[Map[String, String]] = parseIo(scala.io.Source.fromFile(path))
 }
