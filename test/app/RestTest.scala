@@ -35,7 +35,7 @@ trait RestTest extends Specification {
         println(s"$api-$message:$input")
         val response = method match {
           case "get" => WS.url(root + api).get
-          case "post" => WS.url(root + api).post(Json.parse(input))
+          case "post" => WS.url(root + api).withHeaders((CONTENT_TYPE,"application/json")).post(input)
         }
         val result = await(response)
         result.status === status
