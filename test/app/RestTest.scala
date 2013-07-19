@@ -4,15 +4,21 @@ import org.specs2.mutable.Specification
 import play.api.libs.ws.WS
 import play.api.test.Helpers._
 import scala.Some
-import play.api.libs.json.{JsUndefined, JsNull, Json}
+import play.api.libs.json.{JsUndefined, Json}
 import play.api.http.ContentTypeOf
-import play.api.libs
 import utils.{RestCase, RestCases}
-
+import com.typesafe.config.ConfigFactory
+import scala.io.Source
 
 trait RestTest extends Specification {
 
+  val root = {
+    val conf = Source.fromFile("conf/application.conf").getLines().mkString("\n")
+    ConfigFactory.parseString(conf).getString("url.root")
+  }
+
   def testRests(file: String) = {
+
     RestCases.parse(file).map {
       c =>
         testRestApi(c)
@@ -21,15 +27,15 @@ trait RestTest extends Specification {
 
   def testRestApi(c: RestCase) = {
 
-    val (message, method, status, api, input, output) = (c.message, c.method, c.status, c.api, c.input, c.output.trim)
+    val (message, method, status, api, input, output) = (c.message.trim, c.method.trim.toLowerCase, c.status, c.api.trim, c.input.trim, c.output.trim)
 
     implicit val ctf = ContentTypeOf.contentTypeOf_JsValue
     api should {
       message in {
         println(s"$api-$message:$input")
         val response = method match {
-          case "get" => WS.url("http://localhost:9000" + api).get
-          case "post" => WS.url("http://localhost:9000" + api).post(Json.parse(input))
+          case "get" => WS.url(root + api).get
+          case "post" => WS.url(root + api).post(Json.parse(input))
         }
         val result = await(response)
         result.status === status
